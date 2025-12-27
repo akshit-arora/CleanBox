@@ -82,4 +82,4 @@ We welcome contributions! Whether you are a Rustacean or a Vue wizard, check out
 📄 License
 This project is open-sourced under the MIT License.
 
-Built with ❤️ and 🦀 by [Akshit Arora](https://wwww.akshitarora.dev) 🇮🇳
+Built with ❤️ and 🦀 by [Akshit Arora](https://www.akshitarora.dev) 🇮🇳
