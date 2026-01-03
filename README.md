@@ -76,7 +76,7 @@ npm run tauri dev
 Follow my journey on [X (Twitter)](https://x.com/akshitarora) as I build this from scratch!
 
 * [ ] Phase 1: Foundation
-  * [ ] Project Setup (Tauri + Vue)
+  * [x] Project Setup (Tauri + Vue)
   * [ ] IMAP Connection & Fetching
   * [ ] Local SQLite Schema Design
 * [ ] Phase 2: The Logic
