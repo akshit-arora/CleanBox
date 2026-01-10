@@ -77,28 +77,65 @@ pub async fn fetch_inbox_top(pool: &Pool<Sqlite>) -> Result<Vec<Email>, String> 
     for message in messages.iter() {
         if let Some(body) = message.body() {
             if let Some(parsed) = Message::parse(body) {
-                emails.push(Email {
+                let subject = parsed.subject().unwrap_or_default().to_string();
+
+                let sender = match parsed.from() {
+                    HeaderValue::Address(addr) => {
+                        addr.address.as_deref().unwrap_or_default().to_string()
+                    }
+                    HeaderValue::Text(t) => t.to_string(),
+                    _ => "Unknown Sender".to_string(),
+                };
+
+                let body_preview: String = parsed
+                    .body_text(0)
+                    .unwrap_or_default()
+                    .chars()
+                    .take(100)
+                    .collect();
+
+                // Classify the email
+                let body_content = parsed.body_text(0).unwrap_or_default();
+                let (view_mode, transaction_data) =
+                    crate::engine::classify_email(&subject, &sender, &body_content);
+
+                let (amount, merchant) = if let Some(data) = transaction_data {
+                    (data.amount, data.merchant)
+                } else {
+                    (None, None)
+                };
+
+                let email_obj = Email {
                     id: message.message.to_string(), // Using sequence number as ID for now
-                    sender: match parsed.from() {
-                        HeaderValue::Address(addr) => {
-                            addr.address.as_deref().unwrap_or_default().to_string()
-                        }
-                        HeaderValue::Text(t) => t.to_string(),
-                        _ => "Unknown Sender".to_string(),
-                    },
-                    subject: parsed.subject().unwrap_or_default().to_string(),
-                    body_preview: parsed
-                        .body_text(0)
-                        .unwrap_or_default()
-                        .chars()
-                        .take(100)
-                        .collect(),
-                    view_mode: "feed".to_string(),
-                    kanban_status: "inbox".to_string(),
-                    amount: None,
-                    merchant: None,
+                    sender: sender.clone(),
+                    subject: subject.clone(),
+                    body_preview: body_preview.clone(),
+                    view_mode: view_mode.to_string(),
+                    kanban_status: "INBOX".to_string(),
+                    amount,
+                    merchant: merchant.clone(),
                     received_at: chrono::Local::now().to_rfc3339(), // Placeholder
-                });
+                };
+
+                emails.push(email_obj);
+
+                // Insert into DB
+                let _ = sqlx::query(
+                    "INSERT INTO emails (id, sender, subject, body_preview, view_mode, kanban_status, amount, merchant, received_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     ON CONFLICT(id) DO UPDATE SET view_mode = excluded.view_mode, amount = excluded.amount, merchant = excluded.merchant"
+                )
+                .bind(message.message.to_string())
+                .bind(sender)
+                .bind(subject)
+                .bind(body_preview)
+                .bind(view_mode.to_string())
+                .bind("INBOX")
+                .bind(amount)
+                .bind(merchant)
+                .bind(chrono::Local::now().to_rfc3339())
+                .execute(pool)
+                .await;
             }
         }
     }

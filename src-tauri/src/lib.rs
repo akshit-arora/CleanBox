@@ -80,7 +80,29 @@ async fn get_imap_config(pool: State<'_, Pool<Sqlite>>) -> Result<ImapConfigStru
     })
 }
 
+#[tauri::command]
+async fn fetch_inbox_top(pool: State<'_, Pool<Sqlite>>) -> Result<Vec<db::Email>, String> {
+    imap_sync::fetch_inbox_top(pool.inner()).await
+}
+
+#[tauri::command]
+async fn get_emails(
+    pool: State<'_, Pool<Sqlite>>,
+    view_mode: String,
+) -> Result<Vec<db::Email>, String> {
+    let rows = sqlx::query_as::<_, db::Email>(
+        "SELECT * FROM emails WHERE view_mode = ? ORDER BY received_at DESC",
+    )
+    .bind(view_mode)
+    .fetch_all(pool.inner())
+    .await
+    .map_err(|e| e.to_string())?;
+
+    Ok(rows)
+}
+
 pub mod db;
+pub mod engine;
 pub mod imap_sync;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -97,7 +119,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             save_imap_config,
-            get_imap_config
+            get_imap_config,
+            fetch_inbox_top,
+            get_emails
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

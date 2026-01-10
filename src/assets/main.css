@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* Custom globals if needed */
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  background-color: #111111;
+  /* gray-900 from config */
+  color: white;
+}
