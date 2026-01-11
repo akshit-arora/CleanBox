@@ -44,6 +44,17 @@ pub async fn init_db() -> Pool<Sqlite> {
     .await
     .expect("❌ Failed to create database schema.");
 
+    // Create Settings Table
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );",
+    )
+    .execute(&pool)
+    .await
+    .expect("❌ Failed to create settings table.");
+
     println!("✅ CleanBox Database Initialized!");
     pool
 }
