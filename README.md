@@ -77,8 +77,8 @@ Follow my journey on [X (Twitter)](https://x.com/akshitarora) as I build this fr
 
 * [ ] Phase 1: Foundation
   * [x] Project Setup (Tauri + Vue)
-  * [ ] IMAP Connection & Fetching
-  * [ ] Local SQLite Schema Design
+  * [x] IMAP + SMTP Connection & Fetching
+  * [x] Local SQLite Schema Design
 * [ ] Phase 2: The Logic
   * [ ] The "Classifier Engine" (Auto-tagging emails)
   * [ ] Kanban State Management
