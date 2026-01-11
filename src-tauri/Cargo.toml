@@ -35,3 +35,4 @@ mail-parser = "0.8"
 regex = "1.10"
 dotenv = "0.15"
 keyring = "3"
+chrono = { version = "0.4", features = ["serde"] }

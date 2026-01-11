@@ -75,13 +75,13 @@ npm run tauri dev
 ## 🗺️ Roadmap (Build in Public)
 Follow my journey on [X (Twitter)](https://x.com/akshitarora) as I build this from scratch!
 
-* [ ] Phase 1: Foundation
+* [x] Phase 1: Foundation
   * [x] Project Setup (Tauri + Vue)
   * [x] IMAP + SMTP Connection & Fetching
   * [x] Local SQLite Schema Design
-* [ ] Phase 2: The Logic
-  * [ ] The "Classifier Engine" (Auto-tagging emails)
-  * [ ] Kanban State Management
+* [x] Phase 2: The Logic
+  * [x] The "Classifier Engine" (Auto-tagging emails)
+  * [x] Kanban State Management
 * [ ] Phase 3: The UI
   * [ ] Draggable Kanban Board
   * [ ] Chat Interface
