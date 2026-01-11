@@ -1,4 +1,3 @@
-use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Row, Sqlite};
 use tauri::{Manager, State};
@@ -21,27 +20,23 @@ pub struct ImapConfig {
     pub smtp_password: String,
 }
 
-const ENCRYPTION_KEY: &str = "cleanbox_secure_key_123"; // TODO: Use a better key management strategy
-
 #[tauri::command]
 async fn save_imap_config(
     pool: State<'_, Pool<Sqlite>>,
     config: ImapConfig,
 ) -> Result<String, String> {
-    let mc = new_magic_crypt!(ENCRYPTION_KEY, 256);
+    // 1. Save Secrets to OS Keychain
+    secure_store::save_secret("imap_password", &config.imap_password)?;
+    secure_store::save_secret("smtp_password", &config.smtp_password)?;
 
-    let encrypted_imap_pass = mc.encrypt_str_to_base64(&config.imap_password);
-    let encrypted_smtp_pass = mc.encrypt_str_to_base64(&config.smtp_password);
-
+    // 2. Save Non-Sensitive Settings to SQLite
     let queries = vec![
         ("imap_host", config.imap_host),
         ("imap_port", config.imap_port),
         ("imap_user", config.imap_user),
-        ("imap_password", encrypted_imap_pass),
         ("smtp_host", config.smtp_host),
         ("smtp_port", config.smtp_port),
         ("smtp_user", config.smtp_user),
-        ("smtp_password", encrypted_smtp_pass),
     ];
 
     for (key, value) in queries {
@@ -64,8 +59,8 @@ async fn get_imap_config(pool: State<'_, Pool<Sqlite>>) -> Result<ImapConfig, St
         .map_err(|e| e.to_string())?;
 
     let mut config = ImapConfig::default();
-    let mc = new_magic_crypt!(ENCRYPTION_KEY, 256);
 
+    // 1. Fetch from DB
     for row in rows {
         let key: String = row.try_get("key").unwrap_or_default();
         let value: String = row.try_get("value").unwrap_or_default();
@@ -74,28 +69,23 @@ async fn get_imap_config(pool: State<'_, Pool<Sqlite>>) -> Result<ImapConfig, St
             "imap_host" => config.imap_host = value,
             "imap_port" => config.imap_port = value,
             "imap_user" => config.imap_user = value,
-            "imap_password" => {
-                config.imap_password = mc
-                    .decrypt_base64_to_string(&value)
-                    .unwrap_or_else(|_| "".to_string())
-            }
             "smtp_host" => config.smtp_host = value,
             "smtp_port" => config.smtp_port = value,
             "smtp_user" => config.smtp_user = value,
-            "smtp_password" => {
-                config.smtp_password = mc
-                    .decrypt_base64_to_string(&value)
-                    .unwrap_or_else(|_| "".to_string())
-            }
             _ => {}
         }
     }
+
+    // 2. Fetch from Secure Store
+    config.imap_password = secure_store::get_secret("imap_password").unwrap_or_default();
+    config.smtp_password = secure_store::get_secret("smtp_password").unwrap_or_default();
 
     Ok(config)
 }
 
 pub mod db;
 pub mod imap_sync;
+pub mod secure_store;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
