@@ -1,7 +1,10 @@
+use crate::engine;
 use crate::secure_store;
 use futures_util::TryStreamExt;
+use mail_parser::Message;
 use native_tls::TlsConnector;
 use sqlx::{Pool, Row, Sqlite};
+use std::borrow::Cow;
 use tokio_native_tls::TlsConnector as TokioTlsConnector;
 
 use tauri::State;
@@ -37,9 +40,17 @@ pub async fn fetch_inbox_top(pool: State<'_, Pool<Sqlite>>) -> Result<String, St
         return Err("Please configure IMAP in settings.".to_string());
     }
 
+    // 1.5 Fetch Custom Rules
+    let custom_rules = sqlx::query_as::<_, engine::CustomRule>(
+        "SELECT * FROM custom_rules ORDER BY priority DESC",
+    )
+    .fetch_all(&*pool)
+    .await
+    .map_err(|e| format!("Failed to fetch custom rules: {}", e))?;
+
     let port = imap_port.parse::<u16>().map_err(|_| "Invalid IMAP Port")?;
 
-    // 2. Connect to IMAP (Plain for now, or implicit TLS if port 993?)
+    // 2. Connect to IMAP
     let tcp_stream = TcpStream::connect((imap_host.as_str(), port))
         .await
         .map_err(|e| format!("TCP Connection failed: {}", e))?;
@@ -78,8 +89,73 @@ pub async fn fetch_inbox_top(pool: State<'_, Pool<Sqlite>>) -> Result<String, St
     let count = messages.len();
     println!("Fetched {} messages", count);
 
+    // 6. Process & Insert Emails
+    for msg in messages {
+        if let Some(body) = msg.body() {
+            if let Some(parsed) = Message::parse(body) {
+                let subject = parsed.subject().unwrap_or("(No Subject)");
+
+                let sender = match parsed.from() {
+                    mail_parser::HeaderValue::Address(addr) => addr
+                        .name
+                        .as_deref()
+                        .or(addr.address.as_deref())
+                        .unwrap_or("Unknown"),
+                    val => val.as_text_ref().unwrap_or("Unknown"),
+                };
+
+                let body_text = parsed.body_text(0).unwrap_or(Cow::Borrowed("")).to_string();
+                let body_preview = body_text.lines().take(2).collect::<Vec<_>>().join(" ");
+
+                // Use Message-ID as ID, or generate a fallback
+                let message_id = parsed.message_id().unwrap_or("").to_string();
+                let id = if message_id.is_empty() {
+                    format!(
+                        "{}-{}",
+                        sender,
+                        std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap()
+                            .as_millis()
+                    )
+                } else {
+                    message_id
+                };
+
+                // Classify with Rules
+                let (view_mode, tx_data) =
+                    engine::classify_email(subject, sender, &body_text, &custom_rules);
+
+                let (amount, merchant) = if let Some(tx) = tx_data {
+                    (tx.amount, tx.merchant)
+                } else {
+                    (None, None)
+                };
+
+                let received_at = chrono::Local::now().to_rfc3339();
+
+                sqlx::query(
+                    "INSERT INTO emails (id, sender, subject, body_preview, view_mode, kanban_status, amount, merchant, received_at) 
+                     VALUES (?, ?, ?, ?, ?, 'INBOX', ?, ?, ?)
+                     ON CONFLICT(id) DO UPDATE SET view_mode = excluded.view_mode, amount = excluded.amount, merchant = excluded.merchant"
+                )
+                .bind(id)
+                .bind(sender)
+                .bind(subject)
+                .bind(body_preview)
+                .bind(view_mode.as_str())
+                .bind(amount)
+                .bind(merchant)
+                .bind(received_at)
+                .execute(&*pool)
+                .await
+                .map_err(|e| format!("DB Insert failed: {}", e))?;
+            }
+        }
+    }
+
     Ok(format!(
-        "Successfully connected and fetched {} messages",
+        "Successfully connected and fetched/processed {} messages",
         count
     ))
 }

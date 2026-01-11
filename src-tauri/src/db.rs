@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::{sqlite::SqlitePoolOptions, FromRow, Pool, Sqlite};
 
-#[derive(Debug, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
 pub struct Email {
     pub id: String,
     pub sender: String,
@@ -54,6 +54,22 @@ pub async fn init_db() -> Pool<Sqlite> {
     .execute(&pool)
     .await
     .expect("❌ Failed to create settings table.");
+
+    // Create Custom Rules Table
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS custom_rules (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            sender_filter TEXT,       -- Exact match or pattern
+            subject_filter TEXT,      -- Regex or substring
+            body_filter TEXT,         -- Regex or substring
+            target_view_mode TEXT NOT NULL,
+            priority INTEGER DEFAULT 0
+        );",
+    )
+    .execute(&pool)
+    .await
+    .expect("❌ Failed to create custom_rules table.");
 
     println!("✅ CleanBox Database Initialized!");
     pool
