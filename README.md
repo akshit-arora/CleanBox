@@ -81,7 +81,7 @@ Follow my journey on [X (Twitter)](https://x.com/akshitarora) as I build this fr
   * [x] Local SQLite Schema Design
 * [x] Phase 2: The Logic
   * [x] The "Classifier Engine" (Auto-tagging emails)
-  * [ ] Kanban State Management
+  * [x] Kanban State Management
 * [ ] Phase 3: The UI
   * [ ] Draggable Kanban Board
   * [ ] Chat Interface
