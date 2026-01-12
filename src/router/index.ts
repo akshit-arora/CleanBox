@@ -1,0 +1,55 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import KanbanView from '../views/KanbanView.vue'
+import InboxView from '../views/InboxView.vue'
+import ChatView from '../views/ChatView.vue'
+import FeedView from '../views/FeedView.vue'
+import LedgerView from '../views/LedgerView.vue'
+import PulseView from '../views/PulseView.vue'
+import SettingsView from '../views/SettingsView.vue'
+
+const router = createRouter({
+    history: createWebHistory(import.meta.env.BASE_URL),
+    routes: [
+        {
+            path: '/',
+            redirect: '/kanban'
+        },
+        {
+            path: '/inbox',
+            name: 'inbox',
+            component: InboxView
+        },
+        {
+            path: '/kanban',
+            name: 'kanban',
+            component: KanbanView
+        },
+        {
+            path: '/chat',
+            name: 'chat',
+            component: ChatView
+        },
+        {
+            path: '/feed',
+            name: 'feed',
+            component: FeedView
+        },
+        {
+            path: '/ledger',
+            name: 'ledger',
+            component: LedgerView
+        },
+        {
+            path: '/pulse',
+            name: 'pulse',
+            component: PulseView
+        },
+        {
+            path: '/settings',
+            name: 'settings',
+            component: SettingsView
+        }
+    ]
+})
+
+export default router

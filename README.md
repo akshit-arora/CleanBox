@@ -83,7 +83,7 @@ Follow my journey on [X (Twitter)](https://x.com/akshitarora) as I build this fr
   * [x] The "Classifier Engine" (Auto-tagging emails)
   * [x] Kanban State Management
 * [ ] Phase 3: The UI
-  * [ ] Basic UI Structure
+  * [x] Basic UI Structure
   * [ ] Settings
   * [ ] Inbox View
   * [ ] Draggable Kanban Board
