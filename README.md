@@ -85,7 +85,7 @@ Follow my journey on [X (Twitter)](https://x.com/akshitarora) as I build this fr
 * [ ] Phase 3: The UI
   * [x] Basic UI Structure
   * [x] Settings
-  * [ ] Inbox View
+  * [x] Inbox View
   * [ ] Draggable Kanban Board
   * [ ] Chat Interface
   * [ ] News Feed Layout

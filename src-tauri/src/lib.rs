@@ -105,6 +105,21 @@ async fn get_emails(
 }
 
 #[tauri::command]
+async fn get_recent_emails(
+    pool: State<'_, Pool<Sqlite>>,
+    limit: i64,
+) -> Result<Vec<db::Email>, String> {
+    let emails =
+        sqlx::query_as::<_, db::Email>("SELECT * FROM emails ORDER BY received_at DESC LIMIT ?")
+            .bind(limit)
+            .fetch_all(&*pool)
+            .await
+            .map_err(|e| e.to_string())?;
+
+    Ok(emails)
+}
+
+#[tauri::command]
 async fn analyze_and_create_rule(
     pool: State<'_, Pool<Sqlite>>,
     email_id: String,
@@ -276,6 +291,7 @@ pub fn run() {
             save_imap_config,
             get_imap_config,
             get_emails,
+            get_recent_emails,
             analyze_and_create_rule,
             move_email,
             get_kanban_board,
