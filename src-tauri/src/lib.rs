@@ -126,6 +126,51 @@ async fn get_recent_emails(
     Ok(emails)
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct PulseItem {
+    pub id: String,
+    pub sender: String,
+    pub service_name: String,
+    pub otp_code: Option<String>,
+    pub received_at: String,
+}
+
+#[tauri::command]
+async fn get_pulse_items(pool: State<'_, Pool<Sqlite>>) -> Result<Vec<PulseItem>, String> {
+    let emails = sqlx::query_as::<_, db::Email>(
+        "SELECT * FROM emails WHERE view_mode = 'PULSE' ORDER BY received_at DESC",
+    )
+    .fetch_all(&*pool)
+    .await
+    .map_err(|e| e.to_string())?;
+
+    // specific regex to find 4-8 digit codes
+    let re = regex::Regex::new(r"\b\d{4,8}\b").map_err(|e| e.to_string())?;
+
+    let mut items = Vec::new();
+
+    for email in emails {
+        // Try to find OTP in body, fallback to body_preview
+        let content = email.body.as_deref().unwrap_or(&email.body_preview);
+
+        // Find the first match
+        let otp_code = re.find(content).map(|m| m.as_str().to_string());
+
+        // Simple logic for service name: just use sender name
+        let service_name = email.sender.clone();
+
+        items.push(PulseItem {
+            id: email.id,
+            sender: email.sender,
+            service_name,
+            otp_code,
+            received_at: email.received_at,
+        });
+    }
+
+    Ok(items)
+}
+
 #[tauri::command]
 async fn analyze_and_create_rule(
     pool: State<'_, Pool<Sqlite>>,
@@ -534,7 +579,8 @@ pub fn run() {
             get_transactions,
             save_general_settings,
             get_general_settings,
-            imap_sync::fetch_inbox_top
+            imap_sync::fetch_inbox_top,
+            get_pulse_items
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

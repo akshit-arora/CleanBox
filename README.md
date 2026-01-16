@@ -90,7 +90,7 @@ Follow my journey on [X (Twitter)](https://x.com/akshitarora) as I build this fr
   * [x] Chat Interface
   * [x] News Feed Layout
   * [x] Ledger Interface
-  * [ ] Pulse Interface
+  * [x] Pulse Interface
 * [ ] Phase 4: Sync
   * [ ] E2EE Serverless Sync (The "Obsidian" Model)
 

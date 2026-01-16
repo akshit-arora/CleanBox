@@ -4,7 +4,7 @@ import Inbox from '../views/Inbox.vue'
 import ChatView from '../views/Chat.vue'
 import Feed from '../views/Feed.vue'
 import Ledger from '../views/Ledger.vue'
-import PulseView from '../views/PulseView.vue'
+import Pulse from '../views/Pulse.vue'
 import Settings from '../views/Settings.vue'
 
 const router = createRouter({
@@ -42,8 +42,9 @@ const router = createRouter({
         {
             path: '/pulse',
             name: 'pulse',
-            component: PulseView
+            component: Pulse
         },
+
         {
             path: '/settings',
             name: 'settings',
