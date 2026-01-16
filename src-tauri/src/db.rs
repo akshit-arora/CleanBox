@@ -51,12 +51,24 @@ pub struct Email {
     pub received_at: String,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct KanbanColumn {
+    pub id: String,
+    pub title: String,
+    pub color: String,
+}
+
 #[derive(Serialize)]
-pub struct KanbanBoardData {
-    pub inbox: Vec<Email>,
-    pub action: Vec<Email>,
-    pub waiting: Vec<Email>,
-    pub done: Vec<Email>,
+pub struct KanbanColumnData {
+    pub id: String,
+    pub title: String,
+    pub color: String,
+    pub emails: Vec<Email>,
+}
+
+#[derive(Serialize)]
+pub struct KanbanBoard {
+    pub columns: Vec<KanbanColumnData>,
 }
 
 pub async fn init_db() -> Pool<Sqlite> {

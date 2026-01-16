@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import KanbanView from '../views/KanbanView.vue'
+import Kanban from '../views/Kanban.vue'
 import Inbox from '../views/Inbox.vue'
 import ChatView from '../views/ChatView.vue'
 import FeedView from '../views/FeedView.vue'
@@ -22,7 +22,7 @@ const router = createRouter({
         {
             path: '/kanban',
             name: 'kanban',
-            component: KanbanView
+            component: Kanban
         },
         {
             path: '/chat',
