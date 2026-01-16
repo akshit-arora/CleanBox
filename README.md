@@ -83,11 +83,14 @@ Follow my journey on [X (Twitter)](https://x.com/akshitarora) as I build this fr
   * [x] The "Classifier Engine" (Auto-tagging emails)
   * [x] Kanban State Management
 * [ ] Phase 3: The UI
-  * [ ] Draggable Kanban Board
-  * [ ] Chat Interface
-  * [ ] News Feed Layout
-  * [ ] Ledger Interface
-  * [ ] Pulse Interface
+  * [x] Basic UI Structure
+  * [x] Settings
+  * [x] Inbox View
+  * [x] Draggable Kanban Board
+  * [x] Chat Interface
+  * [x] News Feed Layout
+  * [x] Ledger Interface
+  * [x] Pulse Interface
 * [ ] Phase 4: Sync
   * [ ] E2EE Serverless Sync (The "Obsidian" Model)
 
