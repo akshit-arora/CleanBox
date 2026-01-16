@@ -88,7 +88,7 @@ Follow my journey on [X (Twitter)](https://x.com/akshitarora) as I build this fr
   * [x] Inbox View
   * [x] Draggable Kanban Board
   * [x] Chat Interface
-  * [ ] News Feed Layout
+  * [x] News Feed Layout
   * [ ] Ledger Interface
   * [ ] Pulse Interface
 * [ ] Phase 4: Sync

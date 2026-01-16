@@ -49,6 +49,7 @@ pub struct Email {
     pub amount: Option<f64>,
     pub merchant: Option<String>,
     pub received_at: String,
+    pub body: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -101,7 +102,8 @@ pub async fn init_db() -> Pool<Sqlite> {
             kanban_status TEXT NOT NULL,
             amount REAL,
             merchant TEXT,
-            received_at TEXT NOT NULL
+            received_at TEXT NOT NULL,
+            body TEXT
         );",
     )
     .execute(&pool)
@@ -113,6 +115,12 @@ pub async fn init_db() -> Pool<Sqlite> {
         .execute(&pool)
         .await
         .expect("❌ Failed to create index on kanban_status.");
+
+    // MIGRATION: ADD body column if not exists
+    // We try to add it, if it fails (likely because it exists), we ignore the error.
+    let _ = sqlx::query("ALTER TABLE emails ADD COLUMN body TEXT;")
+        .execute(&pool)
+        .await;
 
     // Create Settings Table
     sqlx::query(

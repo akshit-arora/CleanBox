@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Kanban from '../views/Kanban.vue'
 import Inbox from '../views/Inbox.vue'
 import ChatView from '../views/Chat.vue'
-import FeedView from '../views/FeedView.vue'
+import Feed from '../views/Feed.vue'
 import LedgerView from '../views/LedgerView.vue'
 import PulseView from '../views/PulseView.vue'
 import Settings from '../views/Settings.vue'
@@ -32,7 +32,7 @@ const router = createRouter({
         {
             path: '/feed',
             name: 'feed',
-            component: FeedView
+            component: Feed
         },
         {
             path: '/ledger',

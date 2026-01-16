@@ -252,6 +252,7 @@ mod tests {
             amount: None,
             merchant: None,
             received_at: "2023-01-01".to_string(),
+            body: None,
         }
     }
 

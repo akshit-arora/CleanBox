@@ -105,6 +105,11 @@ pub async fn fetch_inbox_top(pool: State<'_, Pool<Sqlite>>) -> Result<String, St
                 };
 
                 let body_text = parsed.body_text(0).unwrap_or(Cow::Borrowed("")).to_string();
+                let body_content = parsed
+                    .body_html(0)
+                    .map(|c| c.to_string())
+                    .unwrap_or_else(|| body_text.clone());
+
                 let body_preview = body_text.lines().take(2).collect::<Vec<_>>().join(" ");
 
                 // Use Message-ID as ID, or generate a fallback
@@ -135,9 +140,9 @@ pub async fn fetch_inbox_top(pool: State<'_, Pool<Sqlite>>) -> Result<String, St
                 let received_at = chrono::Local::now().to_rfc3339();
 
                 sqlx::query(
-                    "INSERT INTO emails (id, sender, subject, body_preview, view_mode, kanban_status, amount, merchant, received_at) 
-                     VALUES (?, ?, ?, ?, ?, 'INBOX', ?, ?, ?)
-                     ON CONFLICT(id) DO UPDATE SET view_mode = excluded.view_mode, amount = excluded.amount, merchant = excluded.merchant"
+                    "INSERT INTO emails (id, sender, subject, body_preview, view_mode, kanban_status, amount, merchant, received_at, body) 
+                     VALUES (?, ?, ?, ?, ?, 'INBOX', ?, ?, ?, ?)
+                     ON CONFLICT(id) DO UPDATE SET view_mode = excluded.view_mode, amount = excluded.amount, merchant = excluded.merchant, body = excluded.body"
                 )
                 .bind(id)
                 .bind(sender)
@@ -147,6 +152,7 @@ pub async fn fetch_inbox_top(pool: State<'_, Pool<Sqlite>>) -> Result<String, St
                 .bind(amount)
                 .bind(merchant)
                 .bind(received_at)
+                .bind(body_content)
                 .execute(&*pool)
                 .await
                 .map_err(|e| format!("DB Insert failed: {}", e))?;
