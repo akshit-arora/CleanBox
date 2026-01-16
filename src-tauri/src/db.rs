@@ -66,6 +66,14 @@ pub struct KanbanColumnData {
     pub emails: Vec<Email>,
 }
 
+#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+pub struct ChatThread {
+    pub sender_name: String,
+    pub sender_email: String,
+    pub latest_subject: String,
+    pub last_message_time: String,
+}
+
 #[derive(Serialize)]
 pub struct KanbanBoard {
     pub columns: Vec<KanbanColumnData>,

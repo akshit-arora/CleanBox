@@ -86,8 +86,8 @@ Follow my journey on [X (Twitter)](https://x.com/akshitarora) as I build this fr
   * [x] Basic UI Structure
   * [x] Settings
   * [x] Inbox View
-  * [ ] Draggable Kanban Board
-  * [ ] Chat Interface
+  * [x] Draggable Kanban Board
+  * [x] Chat Interface
   * [ ] News Feed Layout
   * [ ] Ledger Interface
   * [ ] Pulse Interface

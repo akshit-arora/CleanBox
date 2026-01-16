@@ -383,6 +383,48 @@ async fn get_kanban_board(pool: State<'_, Pool<Sqlite>>) -> Result<db::KanbanBoa
     get_kanban_board_db(&*pool).await
 }
 
+#[tauri::command]
+async fn get_chat_threads(pool: State<'_, Pool<Sqlite>>) -> Result<Vec<db::ChatThread>, String> {
+    // We use a subquery to ensure we get the subject from the row with the MAX(received_at)
+    let threads = sqlx::query_as::<_, db::ChatThread>(
+        "SELECT 
+            sender as sender_name, 
+            sender as sender_email, 
+            subject as latest_subject, 
+            received_at as last_message_time
+         FROM emails e1
+         WHERE view_mode = 'CHAT' 
+           AND received_at = (
+               SELECT MAX(received_at) 
+               FROM emails e2 
+               WHERE e2.sender = e1.sender AND e2.view_mode = 'CHAT'
+           )
+         GROUP BY sender
+         ORDER BY last_message_time DESC",
+    )
+    .fetch_all(&*pool)
+    .await
+    .map_err(|e| e.to_string())?;
+
+    Ok(threads)
+}
+
+#[tauri::command]
+async fn get_thread_messages(
+    pool: State<'_, Pool<Sqlite>>,
+    email: String,
+) -> Result<Vec<db::Email>, String> {
+    let emails = sqlx::query_as::<_, db::Email>(
+        "SELECT * FROM emails WHERE sender = ? AND view_mode = 'CHAT' ORDER BY received_at ASC",
+    )
+    .bind(email)
+    .fetch_all(&*pool)
+    .await
+    .map_err(|e| e.to_string())?;
+
+    Ok(emails)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -406,6 +448,8 @@ pub fn run() {
             update_email_status,
             get_kanban_config,
             save_kanban_config,
+            get_chat_threads,
+            get_thread_messages,
             imap_sync::fetch_inbox_top
         ])
         .run(tauri::generate_context!())

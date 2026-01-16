@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Kanban from '../views/Kanban.vue'
 import Inbox from '../views/Inbox.vue'
-import ChatView from '../views/ChatView.vue'
+import ChatView from '../views/Chat.vue'
 import FeedView from '../views/FeedView.vue'
 import LedgerView from '../views/LedgerView.vue'
 import PulseView from '../views/PulseView.vue'
