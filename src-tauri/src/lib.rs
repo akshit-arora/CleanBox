@@ -20,6 +20,13 @@ pub struct ImapConfig {
     pub smtp_password: String,
 }
 
+#[derive(Serialize, Deserialize, Default)]
+pub struct GeneralSettings {
+    pub currency_symbol: String,
+    pub number_locale: String, // "en-US", "en-IN"
+    pub decimals: bool,
+}
+
 #[tauri::command]
 async fn save_imap_config(
     pool: State<'_, Pool<Sqlite>>,
@@ -425,6 +432,79 @@ async fn get_thread_messages(
     Ok(emails)
 }
 
+#[tauri::command]
+async fn get_ledger_stats(_pool: State<'_, Pool<Sqlite>>) -> Result<db::LedgerStats, String> {
+    // Return dummy data for now as requested
+    Ok(db::LedgerStats {
+        total_income: 15000.0,
+        total_expense: 4300.0,
+        balance: 10700.0,
+    })
+}
+
+#[tauri::command]
+async fn get_transactions(pool: State<'_, Pool<Sqlite>>) -> Result<Vec<db::Email>, String> {
+    let emails = sqlx::query_as::<_, db::Email>(
+        "SELECT * FROM emails WHERE view_mode = 'LEDGER' ORDER BY received_at DESC",
+    )
+    .fetch_all(&*pool)
+    .await
+    .map_err(|e| e.to_string())?;
+
+    Ok(emails)
+}
+
+#[tauri::command]
+async fn save_general_settings(
+    pool: State<'_, Pool<Sqlite>>,
+    settings: GeneralSettings,
+) -> Result<(), String> {
+    let queries = vec![
+        ("currency_symbol", settings.currency_symbol),
+        ("number_locale", settings.number_locale),
+        ("show_decimals", settings.decimals.to_string()),
+    ];
+
+    for (key, value) in queries {
+        sqlx::query("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
+            .bind(key)
+            .bind(value)
+            .execute(&*pool)
+            .await
+            .map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn get_general_settings(pool: State<'_, Pool<Sqlite>>) -> Result<GeneralSettings, String> {
+    let rows = sqlx::query("SELECT key, value FROM settings")
+        .fetch_all(&*pool)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let mut settings = GeneralSettings {
+        currency_symbol: "$".to_string(),
+        number_locale: "en-US".to_string(),
+        decimals: true,
+    };
+
+    for row in rows {
+        let key: String = row.try_get("key").unwrap_or_default();
+        let value: String = row.try_get("value").unwrap_or_default();
+
+        match key.as_str() {
+            "currency_symbol" => settings.currency_symbol = value,
+            "number_locale" => settings.number_locale = value,
+            "show_decimals" => settings.decimals = value.parse().unwrap_or(true),
+            _ => {}
+        }
+    }
+
+    Ok(settings)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -450,6 +530,10 @@ pub fn run() {
             save_kanban_config,
             get_chat_threads,
             get_thread_messages,
+            get_ledger_stats,
+            get_transactions,
+            save_general_settings,
+            get_general_settings,
             imap_sync::fetch_inbox_top
         ])
         .run(tauri::generate_context!())
@@ -459,7 +543,6 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use db::KanbanStage;
     use sqlx::sqlite::SqlitePoolOptions;
 
     async fn setup_test_db() -> Pool<Sqlite> {

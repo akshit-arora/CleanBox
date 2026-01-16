@@ -15,7 +15,10 @@ const config = ref({
   smtp_host: 'smtp.gmail.com',
   smtp_port: '587',
   smtp_user: '',
-  smtp_password: ''
+  smtp_password: '',
+  currency_symbol: '$',
+  number_locale: 'en-US',
+  decimals: true
 })
 
 // Extended interface for frontend stability
@@ -49,6 +52,16 @@ onMounted(async () => {
       config.value = { ...config.value, ...savedConfig }
     }
     
+    const savedGeneral: any = await invoke('get_general_settings')
+    if (savedGeneral) {
+      config.value = { 
+        ...config.value, 
+        currency_symbol: savedGeneral.currency_symbol || '$',
+        number_locale: savedGeneral.number_locale || 'en-US',
+        decimals: savedGeneral.decimals ?? true
+      }
+    }
+
     // Fetch Kanban Config
     const savedKanban: any = await invoke('get_kanban_config')
     let loadedColumns: any[] = [];
@@ -138,6 +151,15 @@ const saveSettings = async () => {
   try {
     await invoke('save_imap_config', { config: config.value })
     
+    // Save General Settings
+    await invoke('save_general_settings', { 
+        settings: {
+            currency_symbol: config.value.currency_symbol,
+            number_locale: config.value.number_locale,
+            decimals: config.value.decimals
+        }
+    })
+
     // Strip _key before sending to backend
     const columnsToSave = kanbanColumns.value.map(({ _key, ...rest }) => rest);
     await invoke('save_kanban_config', { columns: columnsToSave })
@@ -210,6 +232,32 @@ const saveSettings = async () => {
               <div class="space-y-2">
                 <Label for="smtp_password">Password</Label>
                 <Input id="smtp_password" type="password" v-model="config.smtp_password" placeholder="••••••••" />
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium">Display Settings</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <Label for="currency_symbol">Currency Symbol</Label>
+                <Input id="currency_symbol" v-model="config.currency_symbol" placeholder="$" />
+              </div>
+              <div class="space-y-2">
+                 <Label for="number_locale">Number Format</Label>
+                 <select 
+                    id="number_locale" 
+                    v-model="config.number_locale"
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                 >
+                    <option value="en-US">International (1,000,000.00)</option>
+                    <option value="en-IN">Indian (10,00,000.00)</option>
+                    <option value="de-DE">European (1.000.000,00)</option>
+                 </select>
+              </div>
+              <div class="space-y-2 flex items-center gap-2 pt-6">
+                <input type="checkbox" id="decimals" v-model="config.decimals" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                <Label for="decimals" class="cursor-pointer">Show Decimals</Label>
               </div>
             </div>
           </div>

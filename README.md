@@ -89,7 +89,7 @@ Follow my journey on [X (Twitter)](https://x.com/akshitarora) as I build this fr
   * [x] Draggable Kanban Board
   * [x] Chat Interface
   * [x] News Feed Layout
-  * [ ] Ledger Interface
+  * [x] Ledger Interface
   * [ ] Pulse Interface
 * [ ] Phase 4: Sync
   * [ ] E2EE Serverless Sync (The "Obsidian" Model)

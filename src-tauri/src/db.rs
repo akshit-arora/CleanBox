@@ -80,6 +80,13 @@ pub struct KanbanBoard {
     pub columns: Vec<KanbanColumnData>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LedgerStats {
+    pub total_income: f64,
+    pub total_expense: f64,
+    pub balance: f64,
+}
+
 pub async fn init_db() -> Pool<Sqlite> {
     let pool = SqlitePoolOptions::new()
         .max_connections(5)

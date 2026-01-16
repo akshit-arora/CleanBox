@@ -3,7 +3,7 @@ import Kanban from '../views/Kanban.vue'
 import Inbox from '../views/Inbox.vue'
 import ChatView from '../views/Chat.vue'
 import Feed from '../views/Feed.vue'
-import LedgerView from '../views/LedgerView.vue'
+import Ledger from '../views/Ledger.vue'
 import PulseView from '../views/PulseView.vue'
 import Settings from '../views/Settings.vue'
 
@@ -37,7 +37,7 @@ const router = createRouter({
         {
             path: '/ledger',
             name: 'ledger',
-            component: LedgerView
+            component: Ledger
         },
         {
             path: '/pulse',
