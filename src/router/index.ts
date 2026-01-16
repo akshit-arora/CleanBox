@@ -5,7 +5,7 @@ import ChatView from '../views/ChatView.vue'
 import FeedView from '../views/FeedView.vue'
 import LedgerView from '../views/LedgerView.vue'
 import PulseView from '../views/PulseView.vue'
-import SettingsView from '../views/SettingsView.vue'
+import Settings from '../views/Settings.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,7 +47,7 @@ const router = createRouter({
         {
             path: '/settings',
             name: 'settings',
-            component: SettingsView
+            component: Settings
         }
     ]
 })
